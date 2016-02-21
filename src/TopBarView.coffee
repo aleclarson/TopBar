@@ -1,7 +1,8 @@
 
-{ Component, Style, Children } = require "component"
+{ Component, Style, Children, View, StaticRenderer } = require "component"
 { SceneView } = require "navi"
 
+Immutable = require "immutable"
 clampValue = require "clampValue"
 
 TopBar = require "./TopBar"
@@ -30,29 +31,37 @@ module.exports = Component "TopBarView",
       needsChange: no
 
       willGet: =>
-        @scenes.size > 0
+        @scene.scenes.size > 0
 
       get: =>
-        progress = @scenes.last().getProgress()
+        scene = @scene.activeScene
+        assertType scene.getProgress, Function, { scene, topBarView: this }
+        progress = scene.getProgress()
         clampValue progress, 0, 1
 
       didSet: (progress) =>
 
-        # TODO Apply easing?
+        { activeScene, earlierScenes } = @scene
+
+        # TODO Apply easing to progress?
+        #      Or leave that to individual scenes?
 
         # Transforms 0.5 -> 0 AND 1 -> 1
-        progressAbove = (progress - 0.5) / 0.5
+        activeProgress = (progress - 0.5) / 0.5
+        activeProgress = clampValue activeProgress, 0, 1
+        activeScene.onProgress activeProgress
 
-        sceneAbove = @scenes.last()
-        sceneAbove.onProgress clampValue progressAbove, 0, 1
-
-        previous = @scenes.get @scenes.size - 2
-        return unless previous?
+        earlierScene = earlierScenes.get earlierScenes.size - 1
+        return unless earlierScene?
 
         # Transforms 0.5 -> 0 AND 0 -> 1
-        progressBelow = (0.5 - progress) / 0.5
+        earlierProgress = (0.5 - progress) / 0.5
+        earlierProgress = clampValue earlierProgress, 0, 1
+        earlierScene.onProgress earlierProgress
 
-        previous.onProgress clampValue progressBelow, 0, 1
+        hiddenScenes = earlierScenes.slice 0, earlierScenes.size - 1
+        hiddenScenes.forEach (scene) ->
+          scene.onProgress 0
 
 #
 # Rendering
@@ -60,10 +69,11 @@ module.exports = Component "TopBarView",
 
   render: ->
 
-    log.it "TopBar('#{@scene.id}').render()"
-
     scenes = sync.map @state.scenes.toJS(), (scene, index) =>
-      scene.render { key: scene.id, scene }
+      return StaticRenderer
+        key: scene.name
+        shouldUpdate: no
+        render: scene.render
 
     content = View
       children: scenes
