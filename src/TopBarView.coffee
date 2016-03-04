@@ -12,6 +12,7 @@ module.exports = Component "TopBarView",
   propTypes:
     scene: TopBar.Kind
     style: Style
+    contentStyle: Style
     children: Children
 
   customValues:
@@ -25,6 +26,8 @@ module.exports = Component "TopBarView",
       @scene.scenes
 
   componentDidMount: ->
+
+    @scene.view = this
 
     @react
 
@@ -71,9 +74,9 @@ module.exports = Component "TopBarView",
 
     scenes = sync.map @state.scenes.toJS(), (scene, index) =>
       return StaticRenderer
-        key: scene.name
-        shouldUpdate: no
+        key: scene.__id
         render: scene.render
+        shouldUpdate: no
 
     content = View
       children: scenes
@@ -85,7 +88,7 @@ module.exports = Component "TopBarView",
     bar = View
       children: [
         @props.children
-        scenes
+        content
       ]
       style: [
         @styles.bar
@@ -104,5 +107,4 @@ module.exports = Component "TopBarView",
       top: 0
       left: 0
       right: 0
-      height: 40
       backgroundColor: "#000"

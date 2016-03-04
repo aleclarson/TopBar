@@ -16,20 +16,22 @@ module.exports = Factory "TopBar",
     activeScene: get: ->
       @_list.activeScene
 
+    scenes: get: ->
+      @_list.scenes
+
+    sceneIds: get: ->
+      @_list.sceneIds
+
     earlierScenes: get: ->
       @_list.earlierScenes
 
-    scenes: get: ->
-      @_list._scenes
-
-    sceneNames: get: ->
-      @scenes.toJS().map (scene) -> scene.name
+    earlierSceneIds: get: ->
+      @_list.earlierSceneIds
 
   initFrozenValues: (options) ->
 
-    _list: SceneList()
-
-    contentsOpacity: NativeValue 1
+    _list: SceneList
+      getName: => @__id
 
   push: (scene, makeActive) ->
 

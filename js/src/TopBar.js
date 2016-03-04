@@ -17,28 +17,36 @@ module.exports = Factory("TopBar", {
         return this._list.activeScene;
       }
     },
+    scenes: {
+      get: function() {
+        return this._list.scenes;
+      }
+    },
+    sceneIds: {
+      get: function() {
+        return this._list.sceneIds;
+      }
+    },
     earlierScenes: {
       get: function() {
         return this._list.earlierScenes;
       }
     },
-    scenes: {
+    earlierSceneIds: {
       get: function() {
-        return this._list._scenes;
-      }
-    },
-    sceneNames: {
-      get: function() {
-        return this.scenes.toJS().map(function(scene) {
-          return scene.name;
-        });
+        return this._list.earlierSceneIds;
       }
     }
   },
   initFrozenValues: function(options) {
     return {
-      _list: SceneList(),
-      contentsOpacity: NativeValue(1)
+      _list: SceneList({
+        getName: (function(_this) {
+          return function() {
+            return _this.__id;
+          };
+        })(this)
+      })
     };
   },
   push: function(scene, makeActive) {

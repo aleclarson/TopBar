@@ -14,6 +14,7 @@ module.exports = Component("TopBarView", {
   propTypes: {
     scene: TopBar.Kind,
     style: Style,
+    contentStyle: Style,
     children: Children
   },
   customValues: {
@@ -33,6 +34,7 @@ module.exports = Component("TopBarView", {
     };
   },
   componentDidMount: function() {
+    this.scene.view = this;
     return this.react({
       needsChange: false,
       willGet: (function(_this) {
@@ -79,9 +81,9 @@ module.exports = Component("TopBarView", {
     scenes = sync.map(this.state.scenes.toJS(), (function(_this) {
       return function(scene, index) {
         return StaticRenderer({
-          key: scene.name,
-          shouldUpdate: false,
-          render: scene.render
+          key: scene.__id,
+          render: scene.render,
+          shouldUpdate: false
         });
       };
     })(this));
@@ -90,7 +92,7 @@ module.exports = Component("TopBarView", {
       style: [_.Style.Cover, this.props.contentStyle]
     });
     bar = View({
-      children: [this.props.children, scenes],
+      children: [this.props.children, content],
       style: [this.styles.bar, this.props.style]
     });
     return SceneView({
@@ -104,7 +106,6 @@ module.exports = Component("TopBarView", {
       top: 0,
       left: 0,
       right: 0,
-      height: 40,
       backgroundColor: "#000"
     }
   }
