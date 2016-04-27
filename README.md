@@ -4,5 +4,3 @@
 ```coffee
 { TopBar, TopBarView } = require "TopBar"
 ```
-
-*Documentation at a later date*

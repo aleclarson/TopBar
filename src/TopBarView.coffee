@@ -1,35 +1,34 @@
 
 { Component, Style, Children, View, StaticRenderer } = require "component"
 { SceneView } = require "navi"
+{ Shape } = require "type-utils"
 
 Immutable = require "immutable"
 clampValue = require "clampValue"
 
 TopBar = require "./TopBar"
 
+LayeredChildren = Shape "LayeredChildren", { above: Children, below: Children }
+
 module.exports = Component "TopBarView",
 
   propTypes:
     scene: TopBar.Kind
     style: Style
+    children: LayeredChildren
     contentStyle: Style
-    children: Children
 
   customValues:
 
     scene: get: ->
       @props.scene
 
-  initState: ->
+  initValues: ->
 
     scenes: Reaction.sync =>
       @scene.scenes
 
-  componentDidMount: ->
-
-    @scene.view = this
-
-    @react
+    progress: Reaction.sync
 
       needsChange: no
 
@@ -66,45 +65,41 @@ module.exports = Component "TopBarView",
         hiddenScenes.forEach (scene) ->
           scene.onProgress 0
 
+  initListeners: ->
+
+    @scenes.didSet =>
+      @forceUpdate()
+
+  componentDidMount: ->
+    @scene.view = this
+
+  componentWillMount: ->
+    @scene.view = null
+
 #
 # Rendering
 #
 
   render: ->
 
-    scenes = sync.map @state.scenes.toJS(), (scene, index) =>
-      return StaticRenderer
-        key: scene.__id
-        render: scene.render
-        shouldUpdate: no
+    scenes = []
+    @scenes.value.forEach (scene, index) =>
+      scene._element ?= scene.render { key: scene.__id }
+      scenes.push scene._element
 
     content = View
+      style: [ _.Style.Cover, @props.contentStyle ]
       children: scenes
-      style: [
-        _.Style.Cover
-        @props.contentStyle
-      ]
 
     bar = View
-      children: [
-        @props.children
-        content
-      ]
-      style: [
-        @styles.bar
-        @props.style
-      ]
+      style: @props.style
+      children: content
 
     return SceneView {
       @scene
-      children: bar
+      children: [
+        @props.children?.below
+        bar
+        @props.children?.above
+      ]
     }
-
-  styles:
-
-    bar:
-      position: "absolute"
-      top: 0
-      left: 0
-      right: 0
-      backgroundColor: "#000"

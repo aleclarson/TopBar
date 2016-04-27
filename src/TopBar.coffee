@@ -8,9 +8,6 @@ module.exports = Factory "TopBar",
 
   kind: Scene
 
-  optionDefaults:
-    level: 400
-
   customValues:
 
     activeScene: get: ->
